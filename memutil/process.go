@@ -57,6 +57,21 @@ func (process Process) ReadU64(address uint64) uint64 {
     return value
 }
 
+//TODO: maybe change 256 byte max hopefully theres a cleaner version of this with generics
+//TODO: read str and bytes do the same thing just case string from []bytes next time
+func (process Process) ReadStrFixed(address uint64, size int) string {
+	var value [256]byte
+	pReadProcessMemory.Call(uintptr(process.hProcess), uintptr(address), uintptr(unsafe.Pointer(&value)), uintptr(unsafe.Sizeof(value)), uintptr(0))
+	return string(value[:size])
+}
+
+func (process Process) ReadBytesFixed(address uint64, size int) []byte {
+	var value [256]byte
+	pReadProcessMemory.Call(uintptr(process.hProcess), uintptr(address), uintptr(unsafe.Pointer(&value)), uintptr(unsafe.Sizeof(value)), uintptr(0))
+	return value[:size]
+}
+
+
 func (process Process) MultiLevelPtr32(offsets []uint64) uint64 {
 	var pointer uint64 = 0
 	for _, val := range offsets {
@@ -79,13 +94,6 @@ func (process Process) MultiLevelPtr64(offsets []uint64) uint64 {
 	} 
 	return pointer
 }
-
-//TODO: implement ReadStr()
-/*
-func (process Process) ReadBytes(address uint64, amount uint64) []byte {
-	return process.readMemory(address, amount)
-} */
-
 
 func (process Process) WriteF32(address uint64, value float32) {
 	var oldprot uint32
